@@ -74,7 +74,7 @@ items.each do |item|
   # from the post description.
   desc.xpath('/description/img').each do |image|
     match = nil
-    match = /^(https?:\/\/[^\.]+\.media\.tumblr\.com\/.+)_500\.([^\.]+)$/.match(image['src']) if image['src']
+    match = /^(https?:\/\/[^\.]+\.media\.tumblr\.com\/.+)_\d+\.([^\.]+)$/.match(image['src']) if image['src']
     if match then
       images.unshift "#{match[1]}_1280.#{match[2]}"
       image.remove
