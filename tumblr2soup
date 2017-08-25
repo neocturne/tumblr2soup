@@ -41,6 +41,9 @@ catch :done do
       feed.items.each do |item|
         throw :done if item.guid.content == limit
 
+        # Skip duplicate items; the main RSS contains a few items that are also
+        # on page 2 (and there doesn't seem to be a page 1 RSS?). Also prevents
+        # duplicate items when new posts are made while this runs.
         if guids.add? item.guid.content
           items.unshift item
         end
@@ -66,6 +69,9 @@ items.each do |item|
 
   desc = Nokogiri::XML("<description>#{item.description}</description>")
 
+  # First look for all images with typical Tumblr URLs (and edit path for
+  # the hi-res version). The images are stored in reverse order and removed
+  # from the post description.
   desc.xpath('/description/img').each do |image|
     match = nil
     match = /^(https?:\/\/[^\.]+\.media\.tumblr\.com\/.+)_500\.([^\.]+)$/.match(image['src']) if image['src']
@@ -75,12 +81,16 @@ items.each do |item|
     end
   end
 
+  # After removed the images from the description, there will be some <br> tags
+  # at the beginnging of the post. Get rid of them.
   loop do
     br = desc.xpath('/description/*[1]')[0]
     break if !br || br.name != 'br'
     br.remove
   end
 
+  # Then post each image, with the edited description and link to the
+  # Tumblr post as source.
   images.each do |image|
     post_image(soup, image, item.link, desc.root.inner_html)
   end
