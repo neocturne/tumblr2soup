@@ -64,7 +64,7 @@ end
 items.each do |item|
   images = []
 
-  desc = Nokogiri::XML("<description>#{item.description}</description")
+  desc = Nokogiri::XML("<description>#{item.description}</description>")
 
   desc.xpath('/description/img').each do |image|
     match = nil
