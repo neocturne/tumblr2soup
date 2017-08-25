@@ -14,6 +14,10 @@ broken for some time).
 
 ## Configuration
 
+You will need a recent version of Ruby to run *tumblr2soup*, and the tool
+*bundler*. After downloading the *tumblr2soup* repository, simply run
+``bundle install`` to install all dependencies.
+
 Copy the file ``config.rb.example`` to ``config.rb`` and add your data.
 
 After a post is made, its GUID is stored in the file ``latest``. This allows the
