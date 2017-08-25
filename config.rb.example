@@ -1,0 +1,11 @@
+module Config
+	# Tumblr domain, including .tumblr.com
+	Tumblr = 'example.tumblr.com'
+
+	# Soup.io username (without .soup.io)
+	# Posting to groups is not supported at the moment
+	Soup = 'example'
+
+	# Soup.io password
+	Password = ''
+end

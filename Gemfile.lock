@@ -1,0 +1,38 @@
+GIT
+  remote: https://github.com/NeoRaider/soup-client.git
+  revision: f88f59092c0673b6f324fab466c0d67a1e50ee94
+  specs:
+    soup-client (0.0.2)
+      faraday
+      http-cookie
+      nokogiri
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    domain_name (0.5.20170404)
+      unf (>= 0.0.5, < 1.0.0)
+    faraday (0.13.1)
+      multipart-post (>= 1.2, < 3)
+    http-cookie (1.0.3)
+      domain_name (~> 0.5)
+    mini_portile2 (2.2.0)
+    multipart-post (2.0.0)
+    nokogiri (1.8.0)
+      mini_portile2 (~> 2.2.0)
+    rss-nokogiri (0.0.1.1)
+      nokogiri
+    unf (0.1.4)
+      unf_ext
+    unf_ext (0.0.7.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  nokogiri
+  rss-nokogiri
+  soup-client!
+
+BUNDLED WITH
+   1.15.1

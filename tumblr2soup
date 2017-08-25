@@ -1,0 +1,91 @@
+#!/usr/bin/env ruby
+
+
+require 'openssl'
+
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default)
+
+require 'soup-client'
+require 'nokogiri'
+require 'rss'
+require 'rss/nokogiri'
+require 'open-uri'
+
+
+guids = Set.new
+items = []
+
+require './config.rb'
+
+
+latest_file = File.join(File.dirname(__FILE__), 'latest')
+
+limit = nil
+begin
+  limit = File.readlines(latest_file)[0].chomp
+rescue
+end
+
+
+url = "https://#{Config::Tumblr}/rss"
+page = 1
+
+catch :done do
+  loop do
+    open(url) do |rss|
+      feed = RSS::Parser.parse(rss)
+      throw :done if feed.items.empty?
+
+      feed.items.each do |item|
+        throw :done if item.guid.content == limit
+
+        if guids.add? item.guid.content
+          items.unshift item
+        end
+      end
+    end
+
+    page = page + 1
+    url = "https://#{Config::Tumblr}/page/#{page}/rss"
+  end
+end
+
+soup = Soup::Client.new(Config::Soup, Config::Password)
+soup.login
+
+
+def post_image(soup, image, source, desc)
+  soup.new_image(image, source, desc)
+end
+
+
+items.each do |item|
+  images = []
+
+  desc = Nokogiri::XML("<description>#{item.description}</description")
+
+  desc.xpath('/description/img').each do |image|
+    match = nil
+    match = /^(https?:\/\/[^\.]+\.media\.tumblr\.com\/.+)_500\.([^\.]+)$/.match(image['src']) if image['src']
+    if match then
+      images.unshift "#{match[1]}_1280.#{match[2]}"
+      image.remove
+    end
+  end
+
+  loop do
+    br = desc.xpath('/description/*[1]')[0]
+    break if !br || br.name != 'br'
+    br.remove
+  end
+
+  images.each do |image|
+    post_image(soup, image, item.link, desc.root.inner_html)
+  end
+
+  File.open(latest_file, 'w') do |f|
+    f.puts item.guid.content
+  end
+end
