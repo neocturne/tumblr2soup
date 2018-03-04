@@ -68,7 +68,16 @@ items.each do |item|
   link = item['post_url']
 
   item['photos'].reverse_each do |photo|
-    soup.new_image(photo['original_size']['url'], link, desc)
+    loop do
+      begin
+        sleep 10
+        soup.new_image(photo['original_size']['url'], link, desc)
+        break
+      rescue
+        puts 'Retrying...'
+        sleep 50
+      end
+    end
   end
 
   File.open(latest_file, 'w') do |f|
