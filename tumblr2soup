@@ -7,7 +7,9 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup(:default)
 
+require 'json'
 require 'soup-client'
+require 'net/http'
 require 'nokogiri'
 require 'rss'
 require 'rss/nokogiri'
@@ -29,12 +31,28 @@ rescue
 end
 
 
+def consent_gdpr
+  uri = URI.parse('https://www.tumblr.com/svc/privacy/consent')
+  request = JSON.generate({
+    :eu_resident => true,
+    :gdpr_consent_core => true,
+    :redirect_to => "https://#{Config::Tumblr}/",
+  })
+  header = { 'Content-type' => 'application/json' }
+  resp = Net::HTTP.post(uri, request, header)
+  cookie = resp.response['set-cookie'].split('; ')[0]
+  return cookie
+end
+
+gdpr_cookie = consent_gdpr
+
+
 url = "https://#{Config::Tumblr}/rss"
 page = 1
 
 catch :done do
   loop do
-    open(url) do |rss|
+    open(url, 'Cookie' => gdpr_cookie) do |rss|
       feed = RSS::Parser.parse(rss)
       throw :done if feed.items.empty?
 
