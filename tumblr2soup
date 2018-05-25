@@ -32,13 +32,22 @@ end
 
 
 def consent_gdpr
+  uri = URI.parse('https://www.tumblr.com/privacy/consent')
+  resp = Net::HTTP.get(uri)
+  html = Nokogiri::HTML(resp)
+  key = html.xpath('/html/head/meta[@name="tumblr-form-key"]')[0]['content']
+
   uri = URI.parse('https://www.tumblr.com/svc/privacy/consent')
   request = JSON.generate({
     :eu_resident => true,
     :gdpr_consent_core => true,
-    :redirect_to => "https://#{Config::Tumblr}/",
+    :gdpr_consent_first_party_ads => true,
   })
-  header = { 'Content-type' => 'application/json' }
+  header = {
+    'Content-type' => 'application/json',
+    'Referer' => 'https://www.tumblr.com/privacy/consent',
+    'X-tumblr-form-key' => key,
+  }
   resp = Net::HTTP.post(uri, request, header)
   cookie = resp.response['set-cookie'].split('; ')[0]
   return cookie
