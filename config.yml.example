@@ -1,0 +1,11 @@
+tumblr:
+  # Tumblr domain, including .tumblr.com
+  url: example.tumblr.com
+
+soup:
+  # Soup.io username (without .soup.io)
+  # Posting to groups is not supported at the moment
+  username: example
+
+  # Soup.io password
+  password:

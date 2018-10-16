@@ -7,122 +7,71 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup(:default)
 
-require 'json'
 require 'soup-client'
-require 'net/http'
-require 'nokogiri'
-require 'rss'
-require 'rss/nokogiri'
-require 'open-uri'
+require 'tumblr_client'
+require 'yaml'
 
 
 guids = Set.new
 items = []
 
-require './config.rb'
 
+Tumblr.configure do |config|
+  path = File.join ENV['HOME'], '.tumblr'
+  configuration = YAML.load_file path
+  Tumblr::Config::VALID_OPTIONS_KEYS.each do |key|
+    config.send(:"#{key}=", configuration[key.to_s])
+  end
+end
+
+
+config_file = File.join(File.dirname(__FILE__), 'config.yml')
+config = YAML.load_file config_file
 
 latest_file = File.join(File.dirname(__FILE__), 'latest')
 
 limit = nil
 begin
-  limit = File.readlines(latest_file)[0].chomp
+  limit = File.readlines(latest_file)[0].to_i
 rescue
 end
 
 
-def consent_gdpr
-  uri = URI.parse('https://www.tumblr.com/privacy/consent')
-  resp = Net::HTTP.get(uri)
-  html = Nokogiri::HTML(resp)
-  key = html.xpath('/html/head/meta[@name="tumblr-form-key"]')[0]['content']
-
-  uri = URI.parse('https://www.tumblr.com/svc/privacy/consent')
-  request = JSON.generate({
-    :eu_resident => true,
-    :gdpr_consent_core => true,
-    :gdpr_consent_first_party_ads => true,
-  })
-  header = {
-    'Content-type' => 'application/json',
-    'Referer' => 'https://www.tumblr.com/privacy/consent',
-    'X-tumblr-form-key' => key,
-  }
-  resp = Net::HTTP.post(uri, request, header)
-  cookie = resp.response['set-cookie'].split('; ')[0]
-  return cookie
-end
-
-gdpr_cookie = consent_gdpr
-
-
-url = "https://#{Config::Tumblr}/rss"
-page = 1
+tumblr = Tumblr::Client.new
+options = {}
 
 catch :done do
   loop do
-    open(url, 'Cookie' => gdpr_cookie) do |rss|
-      feed = RSS::Parser.parse(rss)
-      throw :done if feed.items.empty?
+    posts = tumblr.posts(config['tumblr']['url'], options)
+    throw :done if posts['posts'].empty?
 
-      feed.items.each do |item|
-        throw :done if item.guid.content == limit
+    posts['posts'].each do |post|
+      throw :done if post['id'] == limit
 
-        # Skip duplicate items; the main RSS contains a few items that are also
-        # on page 2 (and there doesn't seem to be a page 1 RSS?). Also prevents
-        # duplicate items when new posts are made while this runs.
-        if guids.add? item.guid.content
-          items.unshift item
-        end
-      end
+      items.unshift post
     end
 
-    page = page + 1
-    url = "https://#{Config::Tumblr}/page/#{page}/rss"
+    break if not (posts['_links'] and posts['_links']['next'])
+
+    options = posts['_links']['next']['query_params']
   end
 end
 
-soup = Soup::Client.new(Config::Soup, Config::Password)
+soup = Soup::Client.new(config['soup']['username'], config['soup']['password'])
 soup.login
 
 
-def post_image(soup, image, source, desc)
-  soup.new_image(image, source, desc)
-end
-
-
 items.each do |item|
-  images = []
+  next if not item['photos']
 
-  desc = Nokogiri::XML("<description>#{item.description}</description>")
+  desc = item['caption']
+  link = item['post_url']
 
-  # First look for all images with typical Tumblr URLs (and edit path for
-  # the hi-res version). The images are stored in reverse order and removed
-  # from the post description.
-  desc.xpath('/description/img').each do |image|
-    match = nil
-    match = /^(https?:\/\/[^\.]+\.media\.tumblr\.com\/.+)_\d+\.([^\.]+)$/.match(image['src']) if image['src']
-    if match then
-      images.unshift "#{match[1]}_1280.#{match[2]}"
-      image.remove
-    end
-  end
-
-  # After removed the images from the description, there will be some <br> tags
-  # at the beginnging of the post. Get rid of them.
-  loop do
-    br = desc.xpath('/description/*[1]')[0]
-    break if !br || br.name != 'br'
-    br.remove
-  end
-
-  # Then post each image, with the edited description and link to the
-  # Tumblr post as source.
-  images.each do |image|
-    post_image(soup, image, item.link, desc.root.inner_html)
+  item['photos'].reverse_each do |photo|
+    soup.new_image(photo['original_size']['url'], link, desc)
   end
 
   File.open(latest_file, 'w') do |f|
-    f.puts item.guid.content
+    f.puts item['id']
   end
 end
