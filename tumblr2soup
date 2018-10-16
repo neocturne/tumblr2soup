@@ -12,10 +12,6 @@ require 'tumblr_client'
 require 'yaml'
 
 
-guids = Set.new
-items = []
-
-
 Tumblr.configure do |config|
   path = File.join ENV['HOME'], '.tumblr'
   configuration = YAML.load_file path
@@ -40,6 +36,8 @@ end
 tumblr = Tumblr::Client.new
 options = {}
 
+ids = Set.new
+items = []
 catch :done do
   loop do
     posts = tumblr.posts(config['tumblr']['url'], options)
@@ -48,7 +46,7 @@ catch :done do
     posts['posts'].each do |post|
       throw :done if limit and post['id'] <= limit
 
-      items.unshift post
+      items.unshift post if ids.add? post['id']
     end
 
     break if not (posts['_links'] and posts['_links']['next'])
