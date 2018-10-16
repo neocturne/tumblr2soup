@@ -46,7 +46,7 @@ catch :done do
     throw :done if posts['posts'].empty?
 
     posts['posts'].each do |post|
-      throw :done if post['id'] == limit
+      throw :done if limit and post['id'] <= limit
 
       items.unshift post
     end

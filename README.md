@@ -31,9 +31,7 @@ The ``latest`` file may be created manually. The ID of a post has the form
 ``XXXXXXXX`` for a post URL ``https://...tumblr.com/post/XXXXXXXX/...``.
 
 Be wary of removing posts from Tumblr: removing a post while *tumblr2soup* is
-running can cause posts to be skipped, and when the post that is stored in the
-``latest`` file is removed, *tumblr2soup* will have no way to know where to stop
-and re-import the whole Tumblr account.
+running can cause posts to be skipped.
 
 ## Known issues and missing features
 
