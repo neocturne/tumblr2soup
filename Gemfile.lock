@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/NeoRaider/soup-client.git
-  revision: f88f59092c0673b6f324fab466c0d67a1e50ee94
+  revision: e5e47ceabbcf0701fe9242541a123023dd700d98
   specs:
     soup-client (0.0.2)
       faraday
@@ -24,19 +24,19 @@ GEM
   specs:
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
-    faraday (0.17.0)
+    faraday (0.17.1)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.13.1)
       faraday (>= 0.7.4, < 1.0)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
-    json (2.2.0)
+    json (2.3.0)
     mime-types (3.3)
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2019.0904)
+    mime-types-data (3.2019.1009)
     mini_portile2 (2.4.0)
     multipart-post (2.1.1)
-    nokogiri (1.10.4)
+    nokogiri (1.10.7)
       mini_portile2 (~> 2.4.0)
     oauth (0.5.4)
     simple_oauth (0.3.1)
